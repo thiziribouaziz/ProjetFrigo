@@ -1,4 +1,4 @@
-Pour créer un guide étape par étape avec des commits clairs et des messages bien structurés, voici comment tu peux organiser les étapes du projet que nous avons réalisé.
+Pour créer un guide étape par étape avec des commits clairs et des messages bien structurés, voici comment tu peux organiser les étapes du projet que j'ai réalisé.
 
 1. Initialisation du projet
 Étape : Créer le projet et initialiser Git.
