@@ -1,53 +1,62 @@
-// Importer le module Express
-const express = require('express');
-// Importer le module MySQL2 avec support des promesses
-const mysql = require('mysql2/promise');
-const cors = require("cors"); // Middleware pour gérer les requêtes Cross-Origin
-
-// Créer une instance de l'application Express
+const express = require("express");
 const app = express();
 
-// Définir le port du serveur (par exemple, 3094)
-const PORT = 3094;
+const mysql = require("mysql");
+const port = 3095;
+const cors = require("cors");
+app.use(cors());
 
-// Middleware pour analyser le corps des requêtes en JSON
+app.get("/", (req, res) => {
+  res.send("Bienvenue sur mon serveur Express !");
+});
+
+app.listen(port, () => {
+  console.log('Serveur démarré sur le port ${port}');
+});
+//intégration de BDD
+//se connecter à la BDD
+
 app.use(express.json());
-app.use(cors()); // Permet les requêtes cross-origin (important pour les applications web modernes)
 
-// Définir une route de base (GET)
-app.get('/', (req, res) => {
-    res.send('Bienvenue dans votre API backend avec Node.js et Express!');
+const database = mysql.createConnection({
+  host: "localhost", // Ne pas mettre localhost:3000 ici
+  user: "root", // Remplace par ton utilisateur MySQL
+  password: "password", // Remplace par ton mot de passe MySQL
+  database: "frigo_recettes", // Remplace par ton nom de base de données
 });
 
-// Créer une connexion à la base de données frigo-recettes deja existante 
-const db = mysql.createConnection({
-    host: "localhost", // Ou l'adresse de votre serveur MySQL
-    user: "root", // Votre nom d'utilisateur MySQL
-    password: "password", // Votre mot de passe MySQL
-    database: "frigo_recettes",
+//exception jetée en cas d'erreur
+database.connect(function (err) {
+  if (err) throw err;
+  console.log("Connecté à la base de données MySQL!");
+});
+// Exécutez une requête SQL
+database.query("SELECT * FROM produits", (err, results) => {
+  if (err) {
+    console.error("Erreur lors de la requête SQL :", err);
+    return;
+  }
+  console.log("Résultats :", results);
 });
 
-// Connecter à la base de données et afficher un message de succès ou d'erreur
-db.then(() => {
-    console.log("Connecté à MySQL avec mysql2");
-}).catch((err) => {
-    console.error("Erreur de connexion à la base de données:", err);
+// Fermez la connexion après l'exécution
+// database.end();
+
+app.get("/recettes", (req, res) => {
+  database.query("SELECT * FROM recettes", (err, results, fields) => {
+    // console.log("Oups, Erreur", err);
+    // console.log("Voici le résultat", results);
+    // console.log("Voici mes champs", fields);
+
+    res.send(results);
+  });
 });
+app.get("/produits", (req, res) => {
+  database.query("SELECT * FROM produits", (err, results, fields) => {
+    console.log("Oups, Erreur", err);
+    console.log("Voici le résultat", results);
+    console.log("Voici mes champs", fields);
 
-// On utilisant une fonction async utilisant la promesse
-async function main() {
-    try {
-        const [results, fields] = await db.then(conn => conn.query('SHOW TABLES'));
-        console.log(results);
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-// Appeler la fonction principale
-main();
-
-// Lancer le serveur et écouter les connexions
-app.listen(PORT, () => {
-    console.log(`Serveur en cours d'exécution sur http://localhost:${PORT}`);
+    res.send(results);
+  });
 });
